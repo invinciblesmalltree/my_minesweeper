@@ -1,0 +1,5 @@
+cmake*
+*.db
+CMakeLists.txt
+.vscode
+.idea
