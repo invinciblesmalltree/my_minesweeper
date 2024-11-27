@@ -5,6 +5,7 @@
 #include "ranking_table_ui.h"
 
 #include <QApplication>
+#include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
 
@@ -16,12 +17,34 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
     setFixedSize(600, 800);
 
     auto layout = make_unique<QVBoxLayout>(this);
+    layout->setAlignment(QFlags(AlignCenter));
+    layout->setSpacing(20);
 
+    auto titleLabel = make_unique<QLabel>(u"挖地雷"_s);
     auto startGameButton = make_unique<QPushButton>(u"开始游戏"_s);
-    auto AIPlayerButton = make_unique<QPushButton>(u"AI 玩家"_s);
-    auto rankingTableButton = make_unique<QPushButton>(u"排行榜"_s);
+    auto AIPlayerButton = make_unique<QPushButton>(u"AI 玩  家"_s);
+    auto rankingTableButton = make_unique<QPushButton>(u"排  行  榜"_s);
     auto instructionsButton = make_unique<QPushButton>(u"玩法说明"_s);
-    auto aboutButton = make_unique<QPushButton>(u"关于"_s);
+    auto aboutButton = make_unique<QPushButton>(u"关       于"_s);
+
+    titleLabel->setAlignment(QFlags(AlignCenter));
+    titleLabel->setStyleSheet(u"font-size: 72px; color: #4682B4; margin: 10 auto;"_s);
+    for (const auto button: {startGameButton.get(), AIPlayerButton.get(), rankingTableButton.get(),
+                             instructionsButton.get(), aboutButton.get()})
+        button->setStyleSheet(uR"(
+            QPushButton {
+                font-size: 32px;
+                padding: 15px;
+                width: 300px;
+                margin: 10 150;
+                border-radius: 15px;
+                background-color: #87CEFA;
+                color: white;
+                border: 2px solid #4682B4;
+            }
+            QPushButton:hover { background-color: #00BFFF; }
+            QPushButton:pressed { background-color: #1E90FF; }
+        )"_s);
 
     connect(startGameButton.get(), &QPushButton::clicked, [this] {
         DifficultyMenu difficultyMenu(this);
@@ -44,46 +67,12 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
         about.exec();
     });
 
-    startGameButton->setStyleSheet("font-size: 40px;");
-    AIPlayerButton->setStyleSheet("font-size: 40px;");
-    rankingTableButton->setStyleSheet("font-size: 40px;");
-    instructionsButton->setStyleSheet("font-size: 40px;");
-    aboutButton->setStyleSheet("font-size: 40px;");
-
-    startGameButton->setFixedWidth(400);
-    AIPlayerButton->setFixedWidth(400);
-    rankingTableButton->setFixedWidth(190);
-    instructionsButton->setFixedWidth(190);
-    aboutButton->setFixedWidth(400);
-
-    startGameButton->setFixedHeight(100);
-    AIPlayerButton->setFixedHeight(100);
-    rankingTableButton->setFixedHeight(100);
-    instructionsButton->setFixedHeight(100);
-    aboutButton->setFixedHeight(100);
-
-    auto startGameLayout = make_unique<QHBoxLayout>();
-    startGameLayout->addWidget(startGameButton.release());
-    auto AIPlayerLayout = make_unique<QHBoxLayout>();
-    AIPlayerLayout->addWidget(AIPlayerButton.release());
-    auto rankingTableAndInstructionsLayout = make_unique<QHBoxLayout>();
-    rankingTableAndInstructionsLayout->addStretch();
-    rankingTableAndInstructionsLayout->addWidget(rankingTableButton.release());
-    rankingTableAndInstructionsLayout->addSpacing(20);
-    rankingTableAndInstructionsLayout->addWidget(instructionsButton.release());
-    rankingTableAndInstructionsLayout->addStretch();
-    auto aboutLayout = make_unique<QHBoxLayout>();
-    aboutLayout->addWidget(aboutButton.release());
-
-    layout->addStretch();
-    layout->addLayout(startGameLayout.release());
-    layout->addStretch();
-    layout->addLayout(AIPlayerLayout.release());
-    layout->addStretch();
-    layout->addLayout(rankingTableAndInstructionsLayout.release());
-    layout->addStretch();
-    layout->addLayout(aboutLayout.release());
-    layout->addStretch();
+    layout->addWidget(titleLabel.release());
+    layout->addWidget(startGameButton.release());
+    layout->addWidget(AIPlayerButton.release());
+    layout->addWidget(rankingTableButton.release());
+    layout->addWidget(instructionsButton.release());
+    layout->addWidget(aboutButton.release());
 
     setLayout(layout.release());
 }
