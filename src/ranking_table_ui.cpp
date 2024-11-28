@@ -14,10 +14,15 @@ RankingTableUI::RankingTableUI(QWidget *parent) : QDialog(parent) { // 排行榜
     setWindowTitle(u"排行榜"_s);
     setFixedSize(600, 500);
 
-    auto table = make_unique<QTableWidget>(this);
+    auto table = make_unique<QTableWidget>();
+    auto frontButton = make_unique<QPushButton>(u"上一页"_s);
+    auto currentPageLabel = make_unique<QLabel>();
+    auto nextButton = make_unique<QPushButton>(u"下一页"_s);
+    auto bottomLayout = make_unique<QHBoxLayout>();
+    auto layout = make_unique<QVBoxLayout>(this);
+
     table->setColumnCount(3);
     table->setHorizontalHeaderLabels({u"名字"_s, u"时间"_s, u""_s});
-
     // 全局不可点击
     table->setEditTriggers(QFlags(QAbstractItemView::NoEditTriggers));
     table->setSelectionMode(QAbstractItemView::NoSelection);
@@ -29,33 +34,23 @@ RankingTableUI::RankingTableUI(QWidget *parent) : QDialog(parent) { // 排行榜
     table->setStyleSheet(uR"(
         QTableView::item:focus { border: none; }
         QTableView {
-            font-size: 32px;
+            font-size: 24px;
             outline: none;
         }
         QHeaderView::section {
             height: 60px;
-            font-size: 32px;
+            font-size: 24px;
         }
-        QPushButton {
-            background-color: transparent;
-            border: none;
-            outline: none;
-        }
+        QPushButton { background-color: transparent; }
         QPushButton:pressed { background-color: transparent; }
-        QPushButton:focus { outline: none; }
     )"_s);
     table->verticalHeader()->setDefaultSectionSize(60); // 行高
     table->setFixedHeight(364);
+    table->setAlternatingRowColors(true); // 背景色隔行变色
 
-    auto bottomLayout = make_unique<QHBoxLayout>();
-    auto frontButton = make_unique<QPushButton>(u"上一页"_s);
     frontButton->setFixedWidth(80);
-    auto currentPageLabel = make_unique<QLabel>(u"1"_s);
-    currentPageLabel->setAlignment(AlignCenter);
     currentPageLabel->setFixedWidth(80);
-    auto nextButton = make_unique<QPushButton>(u"下一页"_s);
     nextButton->setFixedWidth(80);
-
     // 配置 Object Name ，确保 refresh 函数能找到这两个按钮
     frontButton->setObjectName("frontButton");
     nextButton->setObjectName("nextButton");
@@ -68,12 +63,9 @@ RankingTableUI::RankingTableUI(QWidget *parent) : QDialog(parent) { // 排行榜
     bottomLayout->addWidget(frontButton.release());
     bottomLayout->addWidget(currentPageLabel.release());
     bottomLayout->addWidget(nextButton.release());
-
-    auto layout = make_unique<QVBoxLayout>(this);
     layout->addWidget(table.release());
     layout->addLayout(bottomLayout.release());
     setLayout(layout.release());
-
     refresh(1);
 }
 
@@ -85,8 +77,11 @@ void RankingTableUI::refresh(const int page) {
         auto [id, name, time] = result[i];
         table->setItem(i, 0, new QTableWidgetItem(QString(name.c_str())));
         table->setItem(i, 1, new QTableWidgetItem(QString::number(time)));
-        auto deleteButton = make_unique<QPushButton>(u"×"_s);
+        auto deleteButton = make_unique<QPushButton>();
+        QIcon deleteButtonIcon(":/images/叉.png");
         deleteButton->setFixedWidth(60);
+        deleteButton->setIcon(deleteButtonIcon);
+        deleteButton->setIconSize(QSize(32, 32));
         deleteButton->setProperty("id", QVariant(id));
         connect(deleteButton.get(), &QPushButton::clicked, [this, deleteButton = deleteButton.get(), page] {
             record_db::getInstance()->remove(deleteButton->property("id").toInt());

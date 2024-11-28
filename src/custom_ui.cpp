@@ -14,30 +14,47 @@ using namespace Qt;
 
 CustomUI::CustomUI(QWidget *parent) : QDialog(parent) {
     setWindowTitle(u"自定义难度"_s);
-    setFixedSize(300, 200);
+    setFixedSize(400, 300);
 
-    auto customWidthLabel = make_unique<QLabel>(u"宽度"_s);
+    auto customWidthLabel = make_unique<QLabel>(u"宽   度"_s);
     auto customWidthEdit = make_unique<QLineEdit>();
-    auto customHeightLabel = make_unique<QLabel>(u"高度"_s);
+    auto customHeightLabel = make_unique<QLabel>(u"高   度"_s);
     auto customHeightEdit = make_unique<QLineEdit>();
     auto customMinesLabel = make_unique<QLabel>(u"地雷数"_s);
     auto customMinesEdit = make_unique<QLineEdit>();
     auto customConfirmButton = make_unique<QPushButton>(u"确定"_s);
+    auto customWidthLayout = make_unique<QHBoxLayout>();
+    auto customHeightLayout = make_unique<QHBoxLayout>();
+    auto customMinesLayout = make_unique<QHBoxLayout>();
+    auto layout = make_unique<QVBoxLayout>(this);
 
-    customWidthLabel->setStyleSheet("font-size: 24px;");
-    customWidthEdit->setStyleSheet("font-size: 24px;");
-    customHeightLabel->setStyleSheet("font-size: 24px;");
-    customHeightEdit->setStyleSheet("font-size: 24px;");
-    customMinesLabel->setStyleSheet("font-size: 24px;");
-    customMinesEdit->setStyleSheet("font-size: 24px;");
-    customConfirmButton->setStyleSheet("font-size: 24px;");
-    customWidthLabel->setFixedWidth(100);
-    customWidthEdit->setFixedWidth(100);
-    customHeightLabel->setFixedWidth(100);
-    customHeightEdit->setFixedWidth(100);
-    customMinesLabel->setFixedWidth(100);
-    customMinesEdit->setFixedWidth(100);
-    customConfirmButton->setFixedWidth(100);
+    for (const auto label: {customWidthLabel.get(), customHeightLabel.get(), customMinesLabel.get()})
+        label->setStyleSheet(uR"(
+            color: #333;
+            font-size: 20px;
+            margin: 10 10 10 60;
+        )"_s);
+    for (const auto edit: {customWidthEdit.get(), customHeightEdit.get(), customMinesEdit.get()})
+        edit->setStyleSheet(uR"(
+            background-color: #f0f8ff;
+            border: 2px solid #333;
+            border-radius: 5px;
+            color: #333;
+            font-size: 20px;
+            margin: 10 60 10 10;
+            padding: 5px;
+        )"_s);
+    customConfirmButton->setStyleSheet(uR"(
+        QPushButton {
+            background-color: #4682B4;
+            border-radius: 8px;
+            font-size: 20px;
+            margin: 10 100;
+            padding: 10px;
+        }
+        QPushButton:hover { background-color: #2E6A8B; }
+        QPushButton:pressed { background-color: #1C4D6E; }
+    )"_s);
 
     // 限制只能输入数字
     customWidthEdit->setValidator(new QIntValidator(1, 50, this));
@@ -47,48 +64,33 @@ CustomUI::CustomUI(QWidget *parent) : QDialog(parent) {
     connect(customConfirmButton.get(), &QPushButton::clicked,
             [this, parent, customWidthEdit = customWidthEdit.get(), customHeightEdit = customHeightEdit.get(),
              customMinesEdit = customMinesEdit.get()] {
-                int customWidth = customWidthEdit->text().toInt();
-                int customHeight = customHeightEdit->text().toInt();
-                int customMines = customMinesEdit->text().toInt();
+                const int customWidth = customWidthEdit->text().toInt();
+                const int customHeight = customHeightEdit->text().toInt();
+                const int customMines = customMinesEdit->text().toInt();
                 if (customWidth < 1 || customWidth > 50 || customHeight < 1 || customHeight > 30 || customMines < 1 ||
                     customMines > 1500) {
                     QMessageBox::warning(this, u"错误"_s,
-                                         u"输入不合法，长大于0小于50，宽大于0小于30，雷数小于总格子数！"_s);
+                                         u"输入不合法，长大于0小于50，宽大于0小于30，雷数须小于总格子数！"_s);
                     return;
                 }
                 if (customWidth * customHeight <= customMines) {
-                    QMessageBox::warning(this, u"错误"_s, u"雷数小于总格子数！"_s);
+                    QMessageBox::warning(this, u"错误"_s, u"输入不合法，雷数须小于总格子数！"_s);
                     return;
                 }
-                const auto gameUI = new GameUI(customWidthEdit->text().toInt(), customHeightEdit->text().toInt(),
-                                               customMinesEdit->text().toInt());
-                gameUI->show();
+                (new GameUI(customWidth, customHeight, customMines))->show();
                 close();
                 parent->close();
-                qobject_cast<QWidget *>(parent->parent())->close(); // 多了一层，所以要多调用一次
+                qobject_cast<QWidget *>(parent->parent())->close(); // 关闭主菜单
             });
 
-    auto customWidthLayout = make_unique<QHBoxLayout>();
-    customWidthLayout->addStretch();
     customWidthLayout->addWidget(customWidthLabel.release());
     customWidthLayout->addWidget(customWidthEdit.release());
-    customWidthLayout->addStretch();
-    auto customHeightLayout = make_unique<QHBoxLayout>();
-    customHeightLayout->addStretch();
     customHeightLayout->addWidget(customHeightLabel.release());
     customHeightLayout->addWidget(customHeightEdit.release());
-    customHeightLayout->addStretch();
-    auto customMinesLayout = make_unique<QHBoxLayout>();
-    customMinesLayout->addStretch();
     customMinesLayout->addWidget(customMinesLabel.release());
     customMinesLayout->addWidget(customMinesEdit.release());
-    customMinesLayout->addStretch();
-    auto customConfirmButtonLayout = make_unique<QHBoxLayout>();
-    customConfirmButtonLayout->addWidget(customConfirmButton.release());
-    auto customLayout = make_unique<QVBoxLayout>();
-    customLayout->addLayout(customWidthLayout.release());
-    customLayout->addLayout(customHeightLayout.release());
-    customLayout->addLayout(customMinesLayout.release());
-    customLayout->addLayout(customConfirmButtonLayout.release());
-    setLayout(customLayout.release());
+    for (const auto subLayout: {customWidthLayout.release(), customHeightLayout.release(), customMinesLayout.release()})
+        layout->addLayout(subLayout);
+    layout->addWidget(customConfirmButton.release());
+    setLayout(layout.release());
 }
