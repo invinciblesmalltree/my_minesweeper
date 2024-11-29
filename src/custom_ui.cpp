@@ -59,7 +59,7 @@ CustomUI::CustomUI(QWidget *parent) : QDialog(parent) {
     // 限制只能输入数字
     customWidthEdit->setValidator(new QIntValidator(1, 40, this));
     customHeightEdit->setValidator(new QIntValidator(1, 25, this));
-    customMinesEdit->setValidator(new QIntValidator(1, 999, this));
+    customMinesEdit->setValidator(new QIntValidator(1, 991, this));
 
     connect(customConfirmButton.get(), &QPushButton::clicked,
             [this, parent, customWidthEdit = customWidthEdit.get(), customHeightEdit = customHeightEdit.get(),
@@ -68,13 +68,13 @@ CustomUI::CustomUI(QWidget *parent) : QDialog(parent) {
                 const int customHeight = customHeightEdit->text().toInt();
                 const int customMines = customMinesEdit->text().toInt();
                 if (customWidth < 1 || customWidth > 40 || customHeight < 1 || customHeight > 25 || customMines < 1 ||
-                    customMines > 999) {
+                    customMines > customWidth * customHeight - 9) {
                     QMessageBox::warning(this, u"错误"_s,
-                                         u"输入不合法，长大于0小于40，宽大于0小于25，雷数须小于总格子数！"_s);
+                                         u"输入不合法，长大于0小于40，宽大于0小于25，雷数不大于总格子数-9！"_s);
                     return;
                 }
                 if (customWidth * customHeight <= customMines) {
-                    QMessageBox::warning(this, u"错误"_s, u"输入不合法，雷数须小于总格子数！"_s);
+                    QMessageBox::warning(this, u"错误"_s, u"输入不合法，雷数不大于总格子数-9！"_s);
                     return;
                 }
                 (new GameUI(customWidth, customHeight, customMines))->show();

@@ -3,5 +3,6 @@
         <file>fonts/原神字体.ttf</file>
         <file>images/叉.png</file>
         <file>images/扫雷背景.png</file>
+        <file>images/地雷.png</file>
     </qresource>
 </RCC>

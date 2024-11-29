@@ -1,8 +1,25 @@
 #pragma once
+#include <QTimer>
 #include <QWidget>
 
 class GameUI final : public QWidget {
-    int weight, height, mines;
+    int width, height, mines, minesLeft;
+    std::vector<std::vector<int>> minefield; // 0: empty, 1-9: mine, -1: mine
+    std::vector<std::vector<int>> flags; // 0: unopened, 1: flag, 2: question mark, -1: opened
+    QTimer timer;
+    bool gameStarted = false;
+    bool isGameOver = false;
+    int openedCount = 0;
+    std::string numberColor[8]{
+            "#0000F5", "#377E22", "#EA3323", "#00007B", "#75140C", "#377E7F", "#000000", "#808080",
+    };
+    void clickAt(int clickI, int clickJ);
+    void rightClickAt(int clickI, int clickJ);
+    void leftRightClickAt(int clickI, int clickJ);
+    void startGame(int i, int j);
+    void gameOver();
+    void createMinefield(int clickI, int clickJ);
+    ~GameUI() override = default;
 
 public:
     explicit GameUI(int w, int h, int n, QWidget *parent = nullptr);

@@ -77,10 +77,8 @@ void RankingTableUI::refresh(const int page) {
         auto [id, name, time] = result[i];
         table->setItem(i, 0, new QTableWidgetItem(QString(name.c_str())));
         table->setItem(i, 1, new QTableWidgetItem(QString::number(time)));
-        auto deleteButton = make_unique<QPushButton>();
-        QIcon deleteButtonIcon(":/images/叉.png");
+        auto deleteButton = make_unique<QPushButton>(QIcon(":/images/叉.png"), u""_s);
         deleteButton->setFixedWidth(60);
-        deleteButton->setIcon(deleteButtonIcon);
         deleteButton->setIconSize(QSize(32, 32));
         deleteButton->setProperty("id", QVariant(id));
         connect(deleteButton.get(), &QPushButton::clicked, [this, deleteButton = deleteButton.get(), page] {
