@@ -2,7 +2,6 @@
 
 #include <QGridLayout>
 #include <QLabel>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QTimer>
 #include <vector>
@@ -10,7 +9,7 @@
 using namespace std;
 using namespace Qt;
 
-GameUI::GameUI(int w, int h, int n, QWidget *parent) : QWidget(parent), weight(w), height(h), mines(n) {
+GameUI::GameUI(const int w, const int h, const int n, QWidget *parent) : QWidget(parent), weight(w), height(h), mines(n) {
     setWindowTitle(u"挖地雷"_s);
     setFixedSize(30 * w, 30 * h + 30);
 
