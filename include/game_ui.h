@@ -1,12 +1,14 @@
 #pragma once
+#include <QLabel>
 #include <QTimer>
 #include <QWidget>
 
 class GameUI final : public QWidget {
-    int width, height, mines, minesLeft;
+    int width, height, mines, minesLeft, time = 0;
     std::vector<std::vector<int>> minefield; // 0: empty, 1-9: mine, -1: mine
     std::vector<std::vector<int>> flags; // 0: unopened, 1: flag, 2: question mark, -1: opened
     QTimer timer;
+    QLabel *timeCountLabel, *minesCountLabel;
     bool gameStarted = false;
     bool isGameOver = false;
     int openedCount = 0;
@@ -17,7 +19,7 @@ class GameUI final : public QWidget {
     void rightClickAt(int clickI, int clickJ);
     void leftRightClickAt(int clickI, int clickJ);
     void startGame(int i, int j);
-    void gameOver();
+    void gameOver(int type); // 1: win, 0: lose
     void createMinefield(int clickI, int clickJ);
     ~GameUI() override = default;
 

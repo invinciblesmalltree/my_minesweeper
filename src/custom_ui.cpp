@@ -78,8 +78,8 @@ CustomUI::CustomUI(QWidget *parent) : QDialog(parent) {
                     return;
                 }
                 (new GameUI(customWidth, customHeight, customMines))->show();
-                close();
-                parent->close();
+                accept();
+                dynamic_cast<QDialog *>(parent)->accept();
                 qobject_cast<QWidget *>(parent->parent())->close(); // 关闭主菜单
             });
 

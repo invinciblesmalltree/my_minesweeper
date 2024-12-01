@@ -1,18 +1,25 @@
-#include "main.h"
 #include "main_menu.h"
+#include "gameover_win_ui.h"
 
 #include <QApplication>
 #include <QFontDatabase>
 #include <QPushButton>
 #include <iostream>
 
-using namespace Qt::StringLiterals;
+using namespace Qt;
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
     // 设置全局预设样式
     a.setStyleSheet(uR"(
+        QLineEdit {
+            color: #333;
+            border: 2px solid #333;
+            border-radius: 5px;
+            padding: 5px;
+            text-align: center;
+        }
         QLabel {
             color: #333;
             qproperty-alignment: AlignCenter;
@@ -35,12 +42,7 @@ int main(int argc, char *argv[]) {
     else
         QApplication::setFont(QFont(QFontDatabase::applicationFontFamilies(fontId).at(0)));
 
-    MainMenu mainMenu(nullptr);
-    mainMenu.show();
-
-    // vector<Record> result = record_db::getInstance()->search(0);
-    // for (auto &record: result)
-    //     cout << record.name << " " << record.time << endl;
+    (new MainMenu(nullptr))->show();
 
     return QApplication::exec();
 }

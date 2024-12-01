@@ -17,13 +17,11 @@ protected:
     void mousePressEvent(QMouseEvent *event) override {
         if (event->buttons() == (Qt::LeftButton | Qt::RightButton))
             emit leftRightClicked();
-        // QPushButton::mousePressEvent(event);
     }
     void mouseReleaseEvent(QMouseEvent *event) override {
         if (event->button() == Qt::LeftButton)
             emit clicked();
         if (event->button() == Qt::RightButton)
             emit rightClicked();
-        // QPushButton::mouseReleaseEvent(event);
     }
 };

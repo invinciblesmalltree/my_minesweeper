@@ -1,5 +1,7 @@
 #include "game_ui.h"
+#include "gameover_win_ui.h"
 #include "mineButton.h"
+#include "restart_ui.h"
 
 #include <QGridLayout>
 #include <QLabel>
@@ -14,24 +16,18 @@ using namespace Qt;
 
 GameUI::GameUI(const int w, const int h, const int n, QWidget *parent) :
     QWidget(parent), width(w), height(h), mines(n), minesLeft(n), minefield(h, vector(w, 0)), flags(h, vector(w, 0)),
-    timer(new QTimer(this)) {
+    timer(new QTimer(this)), timeCountLabel(new QLabel(u"0"_s)),
+    minesCountLabel(new QLabel(QString::number(minesLeft))) {
     setWindowTitle(u"挖地雷"_s);
     setFixedSize(30 * w, 30 * h + 30);
 
-    auto minesLabel = make_unique<QLabel>(u"剩余: "_s);
-    auto minesCountLabel = make_unique<QLabel>(QString::number(minesLeft));
-    auto timeLabel = make_unique<QLabel>(u"时间: "_s);
-    auto timeCountLabel = make_unique<QLabel>(u"0"_s);
     auto titleLabel = make_unique<QHBoxLayout>();
     auto gridLayout = make_unique<QGridLayout>();
     auto layout = make_unique<QVBoxLayout>(this);
 
-    minesCountLabel->setObjectName(u"minesCountLabel"_s);
-    for (const auto label: {minesLabel.get(), minesCountLabel.get(), timeLabel.get(), timeCountLabel.get()})
-        label->setStyleSheet(u"font-size: 20px;"_s);
+    setStyleSheet("QLabel { font-size: 20px; }");
 
-    connect(&timer, &QTimer::timeout, [this, timeCountLabel = timeCountLabel.get()] {
-        static int time = 0;
+    connect(&timer, &QTimer::timeout, [this] {
         time++;
         timeCountLabel->setText(QString::number(time));
     });
@@ -56,7 +52,7 @@ GameUI::GameUI(const int w, const int h, const int n, QWidget *parent) :
             auto button = make_unique<MineButton>();
             button->setFixedSize(30, 30);
             button->setCheckable(true);
-            connect(button.get(), &MineButton::clicked, [this, i, j, button = button.get()] {
+            connect(button.get(), &MineButton::clicked, [this, i, j] {
                 if (flags[j][i] == 0)
                     clickAt(i, j);
             });
@@ -65,11 +61,11 @@ GameUI::GameUI(const int w, const int h, const int n, QWidget *parent) :
             gridLayout->addWidget(button.release(), j, i);
         }
 
-    titleLabel->addWidget(minesLabel.release());
-    titleLabel->addWidget(minesCountLabel.release());
+    titleLabel->addWidget(new QLabel(u"剩余:"_s));
+    titleLabel->addWidget(minesCountLabel);
     titleLabel->addStretch();
-    titleLabel->addWidget(timeLabel.release());
-    titleLabel->addWidget(timeCountLabel.release());
+    titleLabel->addWidget(new QLabel(u"时间:"_s));
+    titleLabel->addWidget(timeCountLabel);
     layout->addLayout(titleLabel.release());
     layout->addLayout(gridLayout.release());
     setLayout(layout.release());
@@ -97,7 +93,7 @@ void GameUI::clickAt(const int clickI, const int clickJ) {
         if (minefield[j][i] == -1) {
             // 点到雷，游戏结束
             button->setStyleSheet(u"background-color: red;"_s);
-            gameOver();
+            gameOver(0);
             return;
         }
         if (minefield[j][i] == 0)
@@ -112,16 +108,14 @@ void GameUI::clickAt(const int clickI, const int clickJ) {
         queue.pop();
     }
 
-    if (openedCount + mines == width * height) {
+    if (openedCount + mines == width * height)
         // 所有非雷格子都已翻开，游戏胜利
-        gameOver();
-    }
+        gameOver(1);
 }
 
 void GameUI::rightClickAt(const int clickI, const int clickJ) {
     const auto gridLayout = findChild<QGridLayout *>();
     const auto button = dynamic_cast<MineButton *>(gridLayout->itemAtPosition(clickJ, clickI)->widget());
-    const auto mineLabel = findChild<QLabel *>(u"minesCountLabel"_s);
     if (flags[clickJ][clickI] == 0) {
         flags[clickJ][clickI] = 1;
         button->setText(u"🚩"_s);
@@ -134,7 +128,7 @@ void GameUI::rightClickAt(const int clickI, const int clickJ) {
         flags[clickJ][clickI] = 0;
         button->setText(u""_s);
     }
-    mineLabel->setText(QString::number(minesLeft));
+    minesCountLabel->setText(QString::number(minesLeft));
 }
 
 void GameUI::leftRightClickAt(const int clickI, const int clickJ) {
@@ -145,7 +139,7 @@ void GameUI::leftRightClickAt(const int clickI, const int clickJ) {
                 if (x >= 0 && x < width && y >= 0 && y < height)
                     if (flags[y][x] == 1)
                         count++;
-                    else if (flags[y][x] == 2)
+                    else if (flags[y][x] == 2) // 有待定直接返回
                         return;
         if (count == minefield[clickJ][clickI])
             for (int x = clickI - 1; x <= clickI + 1; x++)
@@ -160,7 +154,7 @@ void GameUI::startGame(const int i, const int j) {
     createMinefield(i, j);
 }
 
-void GameUI::gameOver() {
+void GameUI::gameOver(int type) {
     timer.stop();
     isGameOver = true;
     // 锁定所有按钮
@@ -176,6 +170,16 @@ void GameUI::gameOver() {
                 mineButton->setIcon(QIcon(u":/images/地雷.png"_s));
                 mineButton->setIconSize(QSize(28, 28));
             }
+
+    QTimer::singleShot(1000, this, [this, type] {
+        if (type == 1)
+            // 胜利
+            GameOverWinUI(timeCountLabel->text().toInt(), this).exec();
+        else {
+            // 失败
+            RestartUI(0, this).exec();
+        }
+    });
 }
 
 void GameUI::createMinefield(const int clickI, const int clickJ) {
@@ -198,11 +202,4 @@ void GameUI::createMinefield(const int clickI, const int clickJ) {
                     for (int y = max(0, j - 1); y < min(height, j + 2); y++)
                         if (minefield[y][x] == -1)
                             minefield[j][i]++;
-    // test
-    // const auto gridLayout = findChild<QGridLayout *>();
-    // for (int i = 0; i < width; ++i)
-    //     for (int j = 0; j < height; ++j) {
-    //         const auto button = dynamic_cast<MineButton *>(gridLayout->itemAtPosition(j, i)->widget());
-    //         button->setText(QString::number(minefield[j][i]));
-    //     }
 }
