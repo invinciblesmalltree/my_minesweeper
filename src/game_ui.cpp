@@ -1,6 +1,7 @@
 #include "game_ui.h"
 #include "gameover_win_ui.h"
 #include "mineButton.h"
+#include "record_dao.h"
 #include "restart_ui.h"
 
 #include <QGridLayout>
@@ -14,10 +15,10 @@
 using namespace std;
 using namespace Qt;
 
-GameUI::GameUI(const int w, const int h, const int n, QWidget *parent) :
-    QWidget(parent), width(w), height(h), mines(n), minesLeft(n), minefield(h, vector(w, 0)), flags(h, vector(w, 0)),
-    timer(new QTimer(this)), timeCountLabel(new QLabel(u"0"_s)),
-    minesCountLabel(new QLabel(QString::number(minesLeft))) {
+GameUI::GameUI(const int w, const int h, const int n, bool enable_ai, QWidget *parent) :
+    QWidget(parent), width(w), height(h), mines(n), minesLeft(n), timer(new QTimer(this)),
+    timeCountLabel(new QLabel(u"0"_s)), minesCountLabel(new QLabel(QString::number(minesLeft))), enable_ai(enable_ai),
+    minefield(h, vector(w, 0)), flags(h, vector(w, 0)) {
     setWindowTitle(u"挖地雷"_s);
     setFixedSize(30 * w, 30 * h + 30);
 
@@ -172,10 +173,14 @@ void GameUI::gameOver(int type) {
             }
 
     QTimer::singleShot(1000, this, [this, type] {
-        if (type == 1)
+        if (type == 1) {
             // 胜利
-            GameOverWinUI(timeCountLabel->text().toInt(), this).exec();
-        else {
+            if (enable_ai) {
+                record_db::getInstance()->insert(Record{-1, "AI Player", time});
+                RestartUI(1, this).exec();
+            } else
+                GameOverWinUI(timeCountLabel->text().toInt(), this).exec();
+        } else {
             // 失败
             RestartUI(0, this).exec();
         }
@@ -185,7 +190,7 @@ void GameUI::gameOver(int type) {
 void GameUI::createMinefield(const int clickI, const int clickJ) {
     random_device rd; // 随机数生成器
     mt19937 gen(rd()); // 用随机数生成器作为种子
-    uniform_int_distribution<> dis(0, height * width - 1);
+    uniform_int_distribution dis(0, height * width - 1);
     for (int i = 0; i < mines; i++) {
         int row, col;
         do {

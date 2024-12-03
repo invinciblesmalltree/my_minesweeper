@@ -1,4 +1,5 @@
 #include "custom_ui.h"
+#include "ai_player.h"
 #include "game_ui.h"
 
 #include <QDialog>
@@ -12,7 +13,7 @@
 using namespace std;
 using namespace Qt;
 
-CustomUI::CustomUI(QWidget *parent) : QDialog(parent) {
+CustomUI::CustomUI(QWidget *parent, bool enable_ai) : QDialog(parent) {
     setWindowTitle(u"自定义难度"_s);
     setFixedSize(400, 300);
 
@@ -63,7 +64,7 @@ CustomUI::CustomUI(QWidget *parent) : QDialog(parent) {
 
     connect(customConfirmButton.get(), &QPushButton::clicked,
             [this, parent, customWidthEdit = customWidthEdit.get(), customHeightEdit = customHeightEdit.get(),
-             customMinesEdit = customMinesEdit.get()] {
+             customMinesEdit = customMinesEdit.get(), enable_ai] {
                 const int customWidth = customWidthEdit->text().toInt();
                 const int customHeight = customHeightEdit->text().toInt();
                 const int customMines = customMinesEdit->text().toInt();
@@ -77,10 +78,13 @@ CustomUI::CustomUI(QWidget *parent) : QDialog(parent) {
                     QMessageBox::warning(this, u"错误"_s, u"输入不合法，雷数不大于总格子数-9！"_s);
                     return;
                 }
-                (new GameUI(customWidth, customHeight, customMines))->show();
+                const auto gameUI = new GameUI(customWidth, customHeight, customMines, enable_ai);
+                gameUI->show();
                 accept();
                 dynamic_cast<QDialog *>(parent)->accept();
                 qobject_cast<QWidget *>(parent->parent())->close(); // 关闭主菜单
+                if (enable_ai)
+                    (new AIPlayer(gameUI))->auto_play();
             });
 
     customWidthLayout->addWidget(customWidthLabel.release());

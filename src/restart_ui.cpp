@@ -17,7 +17,7 @@ RestartUI::RestartUI(int type, QWidget *parent) : QDialog(parent) {
         setWindowTitle(u"你赢了！"_s);
     else if (type == 0)
         setWindowTitle(u"你输了！"_s);
-    setFixedSize(600, 600);
+    setFixedSize(600, 800);
 
     auto titleLabel = make_unique<QLabel>(u""_s);
     if (type == 1) {
@@ -28,19 +28,21 @@ RestartUI::RestartUI(int type, QWidget *parent) : QDialog(parent) {
         titleLabel->setStyleSheet(u"color: #E01D37; font-size: 72px; margin: 20 auto;"_s);
     }
     auto startGameButton = make_unique<QPushButton>(u"再来一局"_s);
+    auto AIPlayerButton = make_unique<QPushButton>(u"再来一局 AI"_s);
     auto mainMenuButton = make_unique<QPushButton>(u"返回主界面"_s);
     auto rankingTableButton = make_unique<QPushButton>(u"排  行  榜"_s);
     auto exitButton = make_unique<QPushButton>(u"退出游戏"_s);
     auto layout = make_unique<QVBoxLayout>(this);
 
-    for (const auto button: {startGameButton.get(), mainMenuButton.get(), rankingTableButton.get(), exitButton.get()})
+    for (const auto button: {startGameButton.get(), AIPlayerButton.get(), mainMenuButton.get(),
+                             rankingTableButton.get(), exitButton.get()})
         button->setStyleSheet(uR"(
             QPushButton {
                 background-color: #2ECFD4;
                 border: 2px solid #28B4B8;
                 border-radius: 15px;
                 font-size: 32px;
-                margin: 20 auto;
+                margin: 10 auto;
                 padding: 15px;
                 width: 360px;
             }
@@ -50,6 +52,11 @@ RestartUI::RestartUI(int type, QWidget *parent) : QDialog(parent) {
 
     connect(startGameButton.get(), &QPushButton::clicked, [this, parent] {
         DifficultyMenu(this).exec();
+        close();
+        parent->close();
+    });
+    connect(AIPlayerButton.get(), &QPushButton::clicked, [this, parent] {
+        DifficultyMenu(this, true).exec();
         close();
         parent->close();
     });
@@ -63,8 +70,8 @@ RestartUI::RestartUI(int type, QWidget *parent) : QDialog(parent) {
 
     layout->setAlignment(QFlags(AlignCenter));
     layout->addWidget(titleLabel.release());
-    for (const auto button:
-         {startGameButton.release(), mainMenuButton.release(), rankingTableButton.release(), exitButton.release()})
+    for (const auto button: {startGameButton.release(), AIPlayerButton.release(), mainMenuButton.release(),
+                             rankingTableButton.release(), exitButton.release()})
         layout->addWidget(button);
     setLayout(layout.release());
 }

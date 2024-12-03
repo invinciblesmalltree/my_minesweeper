@@ -3,5 +3,5 @@
 
 class DifficultyMenu final : public QDialog {
 public:
-    explicit DifficultyMenu(QWidget *parent);
+    explicit DifficultyMenu(QWidget *parent, bool enable_ai = false);
 };

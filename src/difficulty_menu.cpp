@@ -1,4 +1,5 @@
 #include "difficulty_menu.h"
+#include "ai_player.h"
 #include "custom_ui.h"
 #include "game_ui.h"
 
@@ -10,7 +11,7 @@
 using namespace std;
 using namespace Qt;
 
-DifficultyMenu::DifficultyMenu(QWidget *parent) : QDialog(parent) {
+DifficultyMenu::DifficultyMenu(QWidget *parent, bool enable_ai) : QDialog(parent) {
     setWindowTitle(u"选择难度"_s);
     setFixedSize(400, 500);
 
@@ -35,22 +36,31 @@ DifficultyMenu::DifficultyMenu(QWidget *parent) : QDialog(parent) {
             QPushButton:pressed { background-color: #6093B3; }
         )"_s);
 
-    connect(easyButton.get(), &QPushButton::clicked, [this, parent] {
-        (new GameUI(9, 9, 10))->show();
+    connect(easyButton.get(), &QPushButton::clicked, [this, parent, enable_ai] {
+        const auto gameUI = new GameUI(9, 9, 10, enable_ai);
+        gameUI->show();
         close();
         parent->close();
+        if (enable_ai)
+            (new AIPlayer(gameUI))->auto_play();
     });
-    connect(mediumButton.get(), &QPushButton::clicked, [this, parent] {
-        (new GameUI(16, 16, 40))->show();
+    connect(mediumButton.get(), &QPushButton::clicked, [this, parent, enable_ai] {
+        const auto gameUI = new GameUI(16, 16, 40, enable_ai);
+        gameUI->show();
         close();
         parent->close();
+        if (enable_ai)
+            (new AIPlayer(gameUI))->auto_play();
     });
-    connect(hardButton.get(), &QPushButton::clicked, [this, parent] {
-        (new GameUI(30, 16, 99))->show();
+    connect(hardButton.get(), &QPushButton::clicked, [this, parent, enable_ai] {
+        const auto gameUI = new GameUI(30, 16, 99, enable_ai);
+        gameUI->show();
         close();
         parent->close();
+        if (enable_ai)
+            (new AIPlayer(gameUI))->auto_play();
     });
-    connect(customButton.get(), &QPushButton::clicked, [this] { CustomUI(this).exec(); });
+    connect(customButton.get(), &QPushButton::clicked, [this, enable_ai] { CustomUI(this, enable_ai).exec(); });
 
     layout->setAlignment(QFlags(AlignCenter));
     for (const auto button:

@@ -61,7 +61,7 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
             parent->close();
     });
     connect(AIPlayerButton.get(), &QPushButton::clicked, [this, parent] {
-        DifficultyMenu(this).exec();
+        DifficultyMenu(this, true).exec();
         if (parent != nullptr)
             parent->close();
     });
